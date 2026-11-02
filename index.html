@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:title" content="Кнопка — бот для заказов вашего канала">
+<meta property="og:description" content="Брони под постом, оплаты с чеком и статусы без переписки. Демо всех тарифов и бесплатный разбор канала.">
+<meta property="og:image" content="https://neruchnoy.github.io/img/og.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="img/icon.png">
+<title>Кнопка от Неручного режима</title>
+<meta name="description" content="Бот для заказов вашего Telegram-канала: брони под постом, оплаты с чеком, статусы без переписки.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Лейаут: одна колонка под телефон, на широком экране — первый экран в две колонки; цвета презентации «Кнопки», тёмная основа */
+:root {
+  --ink: #14202B;        /* фон */
+  --ink-2: #1E2C39;      /* поверхность */
+  --ink-3: #2B3742;      /* граница, неактивное */
+  --paper: #F6F4EF;      /* светлый текст, бегунок */
+  --mist: #C9D1D9;       /* вторичный текст */
+  --slate: #8A96A3;      /* приглушённый */
+  --orange: #FF6B3D;     /* кнопка, акцент */
+  --orange-deep: #C2441E;
+  --ok: #7FD1A0;
+  --font-display: "Unbounded", "Arial Black", Arial, sans-serif;
+  --font-body: "Manrope", "Segoe UI", Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; transition: none !important; } }
+body {
+  margin: 0; background: var(--ink); color: var(--paper);
+  font: 500 17px/1.55 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+section { padding-block: 56px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: clamp(26px, 5.5vw, 40px); line-height: 1.12; font-weight: 800; }
+h3 { font-size: 19px; line-height: 1.25; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font: 800 13px/1.2 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); }
+.lead { color: var(--mist); font-size: 18px; max-width: 60ch; }
+.stack { display: grid; gap: 16px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 56px; padding: 0 26px; border-radius: 16px; border: 0;
+  font: 800 17px/1 var(--font-body); text-decoration: none; cursor: pointer;
+  background: var(--orange); color: var(--ink);
+  box-shadow: 0 10px 30px -12px rgba(255, 107, 61, 0.7);
+}
+.btn:hover { background: #ff7d53; }
+.btn.ghost { background: var(--ink-3); color: var(--paper); box-shadow: none; }
+.btn.ghost:hover { background: #34424f; }
+.btn:focus-visible, .seg button:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; }
+
+/* Шапка */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 700 15px/1.1 var(--font-display); }
+.brand svg { width: 44px; height: 22px; flex: none; }
+.top a.small { font-weight: 700; font-size: 15px; color: var(--mist); text-decoration: none; }
+
+/* Первый экран */
+.hero { padding-block: 28px 64px; display: grid; gap: 40px; align-items: center; }
+@media (min-width: 880px) { .hero { grid-template-columns: 1.15fr 0.85fr; } }
+.hero h1 { font-size: clamp(34px, 7.4vw, 60px); line-height: 1.04; font-weight: 800; }
+.hero h1 em { font-style: normal; color: var(--orange); }
+.hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero .note { color: var(--slate); font-size: 15px; }
+
+.phone {
+  justify-self: center; width: min(100%, 340px);
+  background: #0E1720; border: 1px solid var(--ink-3); border-radius: 34px; padding: 14px;
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.8);
+}
+.post { background: var(--ink-2); border-radius: 22px; overflow: hidden; }
+.post .pic {
+  height: 150px; display: grid; place-items: center;
+  background: radial-gradient(circle at 30% 30%, #34424f, var(--ink-3));
+  color: var(--slate); font: 700 13px/1 var(--font-body); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.post .body { padding: 14px 16px 16px; display: grid; gap: 10px; }
+.post .name { font-weight: 800; }
+.post .price { color: var(--mist); font-size: 15px; }
+.tg-btn {
+  display: flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 12px;
+  background: var(--orange); color: var(--ink); font: 800 16px/1 var(--font-body);
+}
+.tg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tg-btn.dim { background: var(--ink-3); color: var(--paper); font-size: 14px; }
+.toast {
+  margin-top: 12px; padding: 12px 14px; border-radius: 16px; background: var(--paper); color: var(--ink);
+  font-size: 14px; line-height: 1.4; display: grid; gap: 2px;
+}
+.toast b { font-weight: 800; }
+
+/* Боли */
+.pains { display: grid; gap: 12px; }
+@media (min-width: 760px) { .pains { grid-template-columns: repeat(3, 1fr); } }
+.pain { padding: 20px; border-radius: 20px; background: var(--ink-2); display: grid; gap: 8px; align-content: start; }
+.pain .q { font: 700 18px/1.3 var(--font-display); }
+.pain p { color: var(--mist); font-size: 16px; }
+
+/* Было → стало */
+.cases { display: grid; gap: 20px; }
+@media (min-width: 880px) { .cases { grid-template-columns: repeat(3, 1fr); } }
+.case { background: var(--ink-2); border-radius: 24px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+.case video { width: 100%; aspect-ratio: 9 / 13; object-fit: cover; object-position: top; display: block; background: #0E1720; max-width: 100%; }
+.case .txt { padding: 18px 20px 22px; display: grid; gap: 12px; align-content: start; }
+.ba { display: grid; gap: 8px; font-size: 15.5px; }
+.ba span { display: block; font: 800 11px/1 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.ba .was { color: var(--slate); }
+.ba .now span { color: var(--orange); }
+
+/* Проверка продавца */
+.trust { display: grid; gap: 28px; align-items: center; }
+@media (min-width: 880px) { .trust { grid-template-columns: 1fr 1fr; } }
+.chat { background: #0E1720; border: 1px solid var(--ink-3); border-radius: 26px; padding: 18px; display: grid; gap: 10px; max-width: 420px; }
+.msg { padding: 12px 14px; border-radius: 16px; font-size: 15px; line-height: 1.4; max-width: 92%; }
+.msg.in { background: var(--ink-3); justify-self: start; }
+.msg.in small { display: block; color: var(--slate); font-size: 12.5px; margin-bottom: 4px; }
+.msg.bot { background: var(--paper); color: var(--ink); justify-self: end; }
+.msg.bot b { color: var(--orange-deep); }
+.fine { color: var(--slate); font-size: 14.5px; }
+
+/* Технический сотрудник */
+.crew { background: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 32px; padding: clamp(24px, 5vw, 48px); display: grid; gap: 22px; }
+.crew h2 { font-size: clamp(26px, 5.4vw, 42px); }
+.crew .big { font: 700 clamp(20px, 3.6vw, 26px)/1.3 var(--font-display); max-width: 30ch; color: var(--orange); }
+.crew .story { max-width: 62ch; color: var(--mist); }
+.crew ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+@media (min-width: 760px) { .crew ul { grid-template-columns: repeat(3, 1fr); } }
+.crew li { background: var(--ink); border-radius: 18px; padding: 16px; color: var(--mist); border-left: 3px solid var(--orange); }
+.crew li b { display: block; font-weight: 800; margin-bottom: 4px; color: var(--paper); }
+
+/* Тарифы */
+.seg { display: inline-grid; grid-template-columns: repeat(3, 1fr); background: var(--ink-2); border-radius: 16px; padding: 5px; gap: 4px; width: min(100%, 420px); }
+.seg button {
+  border: 0; border-radius: 12px; min-height: 48px; background: transparent; color: var(--mist);
+  font: 800 16px/1 var(--font-body); cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--orange); color: var(--ink); }
+.plan { display: grid; gap: 22px; }
+@media (min-width: 880px) { .plan { grid-template-columns: 1fr 0.9fr; align-items: start; } }
+.price-card { background: var(--ink-2); border-radius: 24px; padding: 22px; display: grid; gap: 6px; }
+.price-card .pct { font: 800 clamp(40px, 9vw, 56px)/1 var(--font-display); color: var(--orange); }
+.price-card .min { color: var(--mist); }
+.price-card .conn { color: var(--slate); font-size: 15px; }
+.badge { justify-self: start; background: var(--ink-3); color: var(--paper); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; }
+.features { display: grid; gap: 10px; }
+.feat { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--ink-2); transition: opacity .2s; }
+.feat .dot { width: 28px; height: 16px; border-radius: 999px; background: var(--ink-3); position: relative; margin-top: 4px; transition: background .2s; }
+.feat .dot::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--slate); transition: left .2s, background .2s; }
+.feat.on .dot { background: var(--orange); }
+.feat.on .dot::after { left: 14px; background: var(--paper); }
+.feat:not(.on) { opacity: 0.45; }
+.feat b { display: block; font-weight: 800; }
+.feat span { color: var(--mist); font-size: 15px; }
+.calc { background: var(--ink-2); border-radius: 24px; padding: 22px; display: grid; gap: 14px; }
+.calc label { font-weight: 700; }
+.calc .row { display: flex; align-items: center; gap: 10px; }
+.calc input[type="number"] {
+  width: 100%; min-width: 0; min-height: 52px; border-radius: 14px; border: 1px solid var(--ink-3); background: var(--ink);
+  color: var(--paper); font: 800 20px/1 var(--font-body); padding: 0 14px; font-variant-numeric: tabular-nums;
+}
+.calc input[type="range"] { width: 100%; accent-color: var(--orange); }
+.calc .out { display: grid; gap: 8px; }
+.calc .line { display: flex; justify-content: space-between; gap: 12px; padding-top: 8px; border-top: 1px solid var(--ink-3); font-variant-numeric: tabular-nums; }
+.calc .line strong { font: 800 20px/1.2 var(--font-body); white-space: nowrap; }
+.calc .hint { color: var(--slate); font-size: 14px; }
+
+/* Демо */
+.demos { display: grid; gap: 14px; }
+@media (min-width: 880px) { .demos { grid-template-columns: repeat(3, 1fr); } }
+.demo { border: 1px solid var(--ink-3); border-radius: 24px; padding: 22px; display: grid; gap: 12px; align-content: start; }
+.demo.star { border-color: var(--orange); }
+.demo .tag { font: 800 12px/1 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange); }
+.demo ul { margin: 0; padding-left: 18px; color: var(--mist); font-size: 15.5px; display: grid; gap: 4px; }
+.demo .btn { width: 100%; }
+
+/* Без риска / шаги */
+.grid2 { display: grid; gap: 12px; }
+@media (min-width: 760px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+.tile { background: var(--ink-2); border-radius: 20px; padding: 20px; display: grid; gap: 6px; align-content: start; }
+.tile p { color: var(--mist); font-size: 16px; }
+.steps { display: grid; gap: 12px; counter-reset: s; }
+@media (min-width: 880px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+.step { counter-increment: s; border-top: 2px solid var(--orange); padding-top: 16px; display: grid; gap: 6px; }
+.step::before { content: counter(s); font: 800 34px/1 var(--font-display); color: var(--orange); }
+.step p { color: var(--mist); font-size: 16px; }
+
+/* Вопросы */
+details { border-bottom: 1px solid var(--ink-3); }
+summary { cursor: pointer; list-style: none; padding: 18px 40px 18px 0; position: relative; font: 700 17px/1.35 var(--font-display); }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; position: absolute; right: 4px; top: 14px; font: 500 28px/1 var(--font-body); color: var(--orange); transition: transform .2s; }
+details[open] summary::after { transform: rotate(45deg); }
+details p { padding-bottom: 18px; color: var(--mist); max-width: 70ch; }
+
+/* Финал */
+.final { text-align: left; display: grid; gap: 18px; padding: clamp(24px, 5vw, 48px); border-radius: 32px; background: var(--ink-2); }
+.final .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+footer { padding-block: 32px 48px; color: var(--slate); font-size: 14px; display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="https://t.me/neruchnoy">
+      <svg viewBox="0 0 88 44" aria-hidden="true"><rect x="0" y="4" width="80" height="36" rx="18" fill="#FF6B3D"/><circle cx="62" cy="22" r="13" fill="#F6F4EF"/></svg>
+      Неручной режим
+    </a>
+    <a class="small" href="#tariffs">Тарифы</a>
+  </header>
+
+  <div class="hero">
+    <div class="stack" style="gap:22px">
+      <p class="eyebrow">Для тех, кто принимает заказы в Telegram</p>
+      <h1>Брони, оплаты и&nbsp;статусы — <em>в&nbsp;боте вашего канала</em></h1>
+      <p class="lead">«Кнопка» берёт на себя то, что сейчас живёт в комментариях, личке и тетради: очередь на бронь, сверку оплат и ответы на «где мой заказ?».</p>
+      <div class="actions">
+        <a class="btn" href="#demo">Попробовать как клиент</a>
+        <a class="btn ghost" href="#tariffs">Сколько стоит</a>
+      </div>
+      <p class="note">Работает в двух каналах с живыми заказами.</p>
+    </div>
+    <div class="phone" aria-label="Так пост выглядит у клиента">
+      <div class="post">
+        <div class="pic">фото лота</div>
+        <div class="body">
+          <div><div class="name">Кукла, коллекционное издание</div><div class="price">7 700 ₽ + вес ~1 300 ₽</div></div>
+          <div class="tg-btn">Забронировать · 37 из 50</div>
+          <div class="tg-row"><div class="tg-btn dim">Я оплатил · чек</div><div class="tg-btn dim">🛡 Проверить продавца</div></div>
+        </div>
+      </div>
+      <div class="toast"><b>Место №38 ваше</b>Оплатите до завтра 18:00 — сумма и реквизиты в боте.</div>
+    </div>
+  </div>
+</div>
+
+<section><div class="wrap stack" style="gap:24px">
+  <h2>Узнаёте?</h2>
+  <div class="pains">
+    <div class="pain"><p class="q">«бронь», «бронь», «бронь»</p><p>Сотня комментариев под постом, а список ников в посте правите вы — руками.</p></div>
+    <div class="pain"><p class="q">30 скринов за вечер</p><p>Оплаты приходят в личку, и вы сверяете их с банком по суммам и именам.</p></div>
+    <div class="pain"><p class="q">«А где мой заказ?»</p><p>Двадцать раз в день. На каждый ответ — 3–5 минут: найти, вспомнить, написать.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap stack" style="gap:24px">
+  <p class="eyebrow">Было → стало</p>
+  <h2>Что меняется с «Кнопкой»</h2>
+  <div class="cases">
+    <article class="case">
+      <video src="video/stories-1-bron.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Бронь под постом"></video>
+      <div class="txt"><h3>Бронь</h3>
+        <div class="ba"><p class="was"><span>Было</span>«Бронь» в комментариях и список ников, который правите вы.</p>
+        <p class="now"><span>Стало</span>Клиент жмёт «Забронировать» под постом и видит, сколько мест осталось. Освободилось место — его получает следующий в очереди.</p></div></div>
+    </article>
+    <article class="case">
+      <video src="video/stories-2-oplata.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Оплата с чеком"></video>
+      <div class="txt"><h3>Оплата</h3>
+        <div class="ba"><p class="was"><span>Было</span>Скрин в личке, который легко потерять.</p>
+        <p class="now"><span>Стало</span>Клиент нажимает «Я оплатил» и прикрепляет чек. Вы сверяете поступление и подтверждаете одной кнопкой — у клиента обновляется остаток.</p></div></div>
+    </article>
+    <article class="case">
+      <video src="video/stories-3-statusy.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Статусы заказа"></video>
+      <div class="txt"><h3>Статус</h3>
+        <div class="ba"><p class="was"><span>Было</span>Каждому лично: «выкупили», «едет», «пришло».</p>
+        <p class="now"><span>Стало</span>Вы отмечаете этап один раз, например у всей посылки, — каждый клиент получает уведомление и видит свой заказ сам.</p></div></div>
+    </article>
+  </div>
+</div></section>
+
+<section><div class="wrap trust">
+  <div class="stack" style="gap:18px">
+    <p class="eyebrow">Защита от двойников</p>
+    <h2>Ваши клиенты знают, где настоящие вы</h2>
+    <p class="lead">Мошенники пишут клиентам посредников с похожих ников: меняют одну букву, ставят ту же аватарку. В «Кнопке» у клиента есть «🛡 Проверить продавца»: он выбирает аккаунт из своих чатов или пересылает сообщение — и бот отвечает, ваш это аккаунт или нет.</p>
+    <p class="fine">Бот не гарантирует безопасность любого перевода, но даёт клиенту простой способ проверить вместо «вроде похоже».</p>
+  </div>
+  <div class="chat" aria-label="Пример проверки">
+    <div class="msg in"><small>Переслано от @shop_doIls</small>Оплатите остаток 6 500 ₽ на карту…</div>
+    <div class="msg bot"><b>Это не наш аккаунт.</b> Ник похож на @shop_dolls, но в нём заглавная I вместо l. Реквизиты мы присылаем только с официальных аккаунтов.</div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="crew">
+    <p class="eyebrow">Не просто сервис</p>
+    <h2>У вас появляется технический сотрудник</h2>
+    <p class="big">Вы занимаетесь клиентами и товаром — техникой занимаюсь я.</p>
+    <p class="story">За ежемесячным платежом стоит не только сервер. Я настраиваю «Кнопку» под ваш канал, отвечаю, когда что-то непонятно, и дорабатываю её по вашим просьбам. Проверка продавца появилась после случаев с мошенниками, фото чека к оплате — по просьбе менеджера. Бывало, что просьба приходила утром, а вечером правка уже работала у всех.</p>
+    <ul>
+      <li><b>Полезное многим</b>выходит для всех бесплатно</li>
+      <li><b>На тарифе «Про»</b>2 часа доработок под ваш канал каждый месяц</li>
+      <li><b>На других тарифах</b>доработки под канал — по договорённости</li>
+    </ul>
+  </div>
+</div></section>
+
+<section id="tariffs"><div class="wrap stack" style="gap:24px">
+  <p class="eyebrow">Тарифы</p>
+  <h2>Бот — во всех тарифах</h2>
+  <p class="lead"><b style="color:var(--paper)">Бот</b> — только бот. <b style="color:var(--paper)">Стандарт</b> — бот + приложение. <b style="color:var(--paper)">Про</b> — бот + приложение + лояльность и 2 часа доработок в месяц. Клиент сам выбирает, где ему удобнее: в чате бота или в приложении внутри Telegram.</p>
+  <div class="seg" role="group" aria-label="Тариф">
+    <button type="button" id="p-bot" data-plan="bot" aria-pressed="false">Бот</button>
+    <button type="button" id="p-standard" data-plan="standard" aria-pressed="false">Стандарт</button>
+    <button type="button" id="p-pro" data-plan="pro" aria-pressed="true">Про</button>
+  </div>
+  <div class="plan">
+    <div class="features" id="features">
+      <div class="feat" data-from="bot"><i class="dot"></i><div><b>Клиент в чате бота</b><span>Свои заказы, суммы к оплате по этапам, «Я оплатил» с чеком, уведомления об этапах</span></div></div>
+      <div class="feat" data-from="bot"><i class="dot"></i><div><b>Проверить продавца</b><span>Защита клиентов от двойников</span></div></div>
+      <div class="feat" data-from="bot"><i class="dot"></i><div><b>Ваша панель</b><span>Заказы, корзины, коллективки, «Кто должен», напоминания, задачи, роли сотрудников, финансы</span></div></div>
+      <div class="feat" data-from="standard"><i class="dot"></i><div><b>Приложение клиента</b><span>Личный кабинет в Telegram: шкала этапов и все оплаты на одном экране</span></div></div>
+      <div class="feat" data-from="standard"><i class="dot"></i><div><b>Бронь под постом</b><span>Места, очередь, лист ожидания</span></div></div>
+      <div class="feat" data-from="standard"><i class="dot"></i><div><b>Вишлист, спрос и отзывы</b><span>«5 человек хотят эту позицию» — и отзывы клиентов в приложении</span></div></div>
+      <div class="feat" data-from="pro"><i class="dot"></i><div><b>Лояльность</b><span>Своя бонусная валюта, задания, конкурсы, достижения, уроки для клиентов</span></div></div>
+      <div class="feat" data-from="pro"><i class="dot"></i><div><b>2 часа доработок в месяц</b><span>Под ваш канал</span></div></div>
+    </div>
+    <div class="stack" style="gap:16px">
+      <div class="price-card">
+        <span class="badge" id="badge" hidden>На «Про» работают оба действующих канала</span>
+        <div class="pct" id="pct">1,7 %</div>
+        <div class="min" id="min">не меньше 3 000 ₽ в месяц</div>
+        <div class="conn" id="conn">Подключение 5 000 ₽</div>
+        <div class="conn">Процент — с оплат за товар и вашу комиссию, без веса и доставки.</div>
+      </div>
+      <div class="calc">
+        <label for="turnover">Сколько в месяц клиенты платят вам за товар и комиссию через бота</label>
+        <div class="row"><input type="number" id="turnover" inputmode="numeric" min="0" step="10000" value="150000"><span>₽</span></div>
+        <input type="range" id="turnover-range" min="0" max="1000000" step="10000" value="150000" aria-label="Оборот в месяц">
+        <div class="out">
+          <div class="line"><span>Первые 2 месяца — только процент</span><strong id="out-first">2 550 ₽</strong></div>
+          <div class="line"><span>Дальше в месяц</span><strong id="out-after">3 000 ₽</strong></div>
+        </div>
+        <p class="hint">«Кнопка» дорабатывается по ходу работы: новые функции приходят во все подходящие тарифы без доплаты.</p>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section id="demo"><div class="wrap stack" style="gap:24px">
+  <p class="eyebrow">Демо</p>
+  <h2>Попробуйте как клиент</h2>
+  <p class="lead">У каждого тарифа свой демо-бот. Начните с «Про» — там видно всё. Регистрация не нужна, деньги не спишутся.</p>
+  <div class="demos">
+    <div class="demo star"><p class="tag">Про · всё сразу</p><h3>Бот + приложение + лояльность</h3>
+      <ul><li>всё из «Стандарта»</li><li>своя бонусная валюта, задания, конкурсы, достижения</li><li>уроки для клиентов</li><li>2 часа доработок под ваш канал каждый месяц</li></ul>
+      <p class="fine">Так работают оба действующих канала.</p>
+      <a class="btn" href="https://t.me/knopka_demo_pro_bot">Открыть демо «Про»</a></div>
+    <div class="demo"><p class="tag">Стандарт</p><h3>Бот + приложение</h3>
+      <ul><li>всё из «Бота»</li><li>приложение клиента: шкала этапов и все оплаты на одном экране</li><li>бронь под постом с очередью</li><li>вишлист и отзывы</li></ul>
+      <a class="btn ghost" href="https://t.me/knopka_demo_standart_bot">Открыть демо «Стандарт»</a></div>
+    <div class="demo"><p class="tag">Бот</p><h3>Только бот</h3>
+      <ul><li>заказы и суммы к оплате — в чате бота</li><li>«Я оплатил» с чеком</li><li>уведомления об этапах</li><li>проверка продавца</li></ul>
+      <a class="btn ghost" href="https://t.me/knopka_demo_bot_bot">Открыть демо «Бот»</a></div>
+  </div>
+</div></section>
+
+<section><div class="wrap stack" style="gap:24px">
+  <h2>Без риска</h2>
+  <div class="grid2">
+    <div class="tile"><h3>Всё видно до оплаты</h3><p>Демо всех трёх тарифов и бесплатный разбор вашего канала.</p></div>
+    <div class="tile"><h3>Данные — ваши</h3><p>В любой момент выгружаются в Excel. Вы ни к чему не привязаны.</p></div>
+    <div class="tile"><h3>Ушли — удаляем</h3><p>Если откажетесь от «Кнопки», сначала отправлю вам все данные файлом Excel, и только после этого удаляю данные ваших клиентов.</p></div>
+    <div class="tile"><h3>Без пробного периода — и честно</h3><p>С первого дня я настраиваю бота под вас и плачу за сервер. Поэтому показываю всё заранее, а первые 2 месяца берёте только процент.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap stack" style="gap:28px">
+  <h2>Как подключаем</h2>
+  <div class="steps">
+    <div class="step"><h3>Разбор</h3><p>Вы рассказываете, как сейчас идут заказы и оплаты.</p></div>
+    <div class="step"><h3>Настройка</h3><p>Собираю бота под ваш канал: этапы заказа, валюты, оплаты.</p></div>
+    <div class="step"><h3>Запуск</h3><p>Показываю вам и менеджеру, как работать, и остаюсь на связи.</p></div>
+  </div>
+  <p class="fine">Подключаю сам, поэтому беру не больше 8 новых каналов в месяц.</p>
+</div></section>
+
+<section><div class="wrap stack" style="gap:8px">
+  <h2 style="margin-bottom:12px">Частые вопросы</h2>
+  <details><summary>Процент берётся с оплат за товар, а я зарабатываю только комиссию. Не дорого?</summary>
+    <p>Процент считается с товара и комиссии, а не только с вашего заработка; вес и доставка не входят. Поэтому первые 2 месяца — без минимума: вы проверяете на своих цифрах. Сравните с тем, что уходит сейчас: часы на переписку, одна потерянная оплата, одна невыкупленная бронь. Если заказов пока мало, а комиссия маленькая, я честно скажу «рано».</p></details>
+  <details><summary>У меня не куклы. Подойдёт?</summary>
+    <p>Брони, оплаты по этапам, статусы и общие доставки одинаковы для любого товара. На разборе посмотрим, что подходит именно вам.</p></details>
+  <details><summary>Клиенты не захотят ставить приложение</summary>
+    <p>Ставить ничего не нужно: и бот, и приложение открываются внутри Telegram.</p></details>
+  <details><summary>Что, если что-то сломается?</summary>
+    <p>Пишете мне — чиню. Это входит в ежемесячный платёж.</p></details>
+</div></section>
+
+<section><div class="wrap">
+  <div class="final">
+    <h2>Разберём ваш канал — бесплатно</h2>
+    <p class="lead">Расскажите, как сейчас идут заказы и оплаты. Отвечу лично, где уходят часы и деньги, даже если бот вам не нужен.</p>
+    <div class="actions">
+      <a class="btn" href="https://t.me/neruchnoy">Написать каналу</a>
+      <a class="btn ghost" href="https://docs.google.com/forms/d/e/1FAIpQLSdqpEBKtYAXI7pfzA7olbubjiO-yJpUJJUh505c4hUyVIMYlw/viewform">Заполнить анкету</a>
+    </div>
+  </div>
+</div></section>
+
+<div class="wrap"><footer><span>Неручной режим · убираем рутину из бизнеса</span><a href="https://t.me/neruchnoy">t.me/neruchnoy</a></footer></div>
+
+<script>
+(function () {
+  var PLANS = {
+    bot: { pct: 0.01, min: 1500, conn: 3000, rank: 0 },
+    standard: { pct: 0.017, min: 3000, conn: 5000, rank: 1 },
+    pro: { pct: 0.02, min: 4000, conn: 5000, rank: 2 }
+  };
+  var RANK = { bot: 0, standard: 1, pro: 2 };
+  var current = "pro";
+  var rub = function (n) { return Math.round(n).toLocaleString("ru-RU") + " ₽"; };
+  var pctText = function (p) { return (p * 100).toLocaleString("ru-RU", { maximumFractionDigits: 1 }) + " %"; };
+  var input = document.getElementById("turnover");
+  var range = document.getElementById("turnover-range");
+
+  function render() {
+    var p = PLANS[current];
+    document.querySelectorAll(".seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.plan === current)); });
+    document.querySelectorAll(".feat").forEach(function (f) { f.classList.toggle("on", RANK[f.dataset.from] <= p.rank); });
+    document.getElementById("pct").textContent = pctText(p.pct);
+    document.getElementById("min").textContent = "не меньше " + rub(p.min) + " в месяц";
+    document.getElementById("conn").textContent = "Подключение " + rub(p.conn);
+    document.getElementById("badge").hidden = current !== "pro";
+    var x = Math.max(0, Number(input.value) || 0);
+    document.getElementById("out-first").textContent = rub(x * p.pct);
+    document.getElementById("out-after").textContent = rub(Math.max(x * p.pct, p.min));
+  }
+  document.querySelectorAll(".seg button").forEach(function (b) {
+    b.addEventListener("click", function () { current = b.dataset.plan; render(); });
+  });
+  input.addEventListener("input", function () { range.value = input.value; render(); });
+  range.addEventListener("input", function () { input.value = range.value; render(); });
+
+  // Ролики играют, только когда видны
+  var vids = document.querySelectorAll(".case video");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { var pr = e.target.play(); if (pr && pr.catch) pr.catch(function () {}); } else e.target.pause(); });
+    }, { threshold: 0.3 });
+    vids.forEach(function (v) { io.observe(v); });
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
