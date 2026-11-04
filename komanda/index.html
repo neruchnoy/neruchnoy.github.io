@@ -174,8 +174,8 @@ details>div{margin-top:10px;display:flex;flex-direction:column;gap:8px;max-width
 </div>
 
 <script>
-// Куда уходят ответы: служебная Google Форма (каждая отправка = строка таблицы). Пока не настроено — копятся на устройстве и уйдут позже.
-var FORM = { action: 'https://docs.google.com/forms/d/e/1FAIpQLSfMEhupAt6EJ4u-vpYlAUt4Aby_27v256lxIULK4HRCrTuZSQ/formResponse', who: 'entry.2116667540', page: 'entry.495022576', block: 'entry.50310173', question: 'entry.91645415', reaction: 'entry.1164264333', answer: 'entry.2057079574' };
+// Куда уходят ответы: сервер Кнопки (таблица team_page_answers). Нет связи — ответ ждёт на устройстве и уйдёт при следующем открытии.
+var API = 'https://api.dreamdool.ru/team-answers';
 var PAGE = 'komanda-2026-11';
 
 var ICON = {
@@ -377,7 +377,7 @@ function restore() {
 
 function showSent(box, list) {
   box.querySelector('.sent').innerHTML = list.map(function(s) {
-    return '<div><small>' + esc(new Date(s.ts).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) + (s.done ? ' · записано' : ' · отправится, когда будет связь') + '</small>' + esc((s.reaction ? s.reaction + (s.answer ? '. ' : '') : '') + s.answer) + '</div>';
+    return '<div><small>' + esc(new Date(s.ts).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) + (s.saved ? ' · записано' : ' · отправится, когда будет связь') + '</small>' + esc((s.reaction ? s.reaction + (s.answer ? '. ' : '') : '') + s.answer) + '</div>';
   }).join('');
 }
 
@@ -386,23 +386,34 @@ function submit(box) {
   var answer = ta.value.trim(), reaction = chip ? chip.textContent : '';
   var status = box.querySelector('.status');
   if (!answer && !reaction) { status.textContent = 'Выберите вариант или напишите пару слов.'; return; }
-  var rec = { block: box.dataset.block, q: box.dataset.q, who: who, reaction: reaction, answer: answer, ts: Date.now(), done: false };
+  var rec = { id: newId(), block: box.dataset.block, q: box.dataset.q, who: who, reaction: reaction, answer: answer, ts: Date.now(), saved: false };
   var sent = store.get('kn-sent', []); sent.push(rec); store.set('kn-sent', sent);
   ta.value = ''; var d = store.get('kn-drafts', {}); delete d[rec.block]; store.set('kn-drafts', d);
   if (chip) chip.setAttribute('aria-pressed', 'false');
   status.textContent = 'Отправляю…';
-  flush().then(function(){ status.textContent = FORM ? 'Записано, спасибо!' : 'Сохранено, отправится автоматически.'; showSent(box, store.get('kn-sent', []).filter(function(s){ return s.block === rec.block && s.who === who; })); });
+  flush().then(function(){
+    var mine = store.get('kn-sent', []).filter(function(s){ return s.block === rec.block && s.who === who; });
+    var last = mine[mine.length - 1];
+    status.textContent = last && last.saved ? 'Записано, спасибо!' : 'Сохранено на телефоне, отправится, когда появится связь.';
+    showSent(box, mine);
+  });
 }
 
+function newId() {
+  try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+  return 'k' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+}
+
+// Неотправленные ответы — на сервер по одному; повтор с тем же id сервер не задвоит.
 function flush() {
-  if (!FORM) return Promise.resolve();
   var sent = store.get('kn-sent', []);
   var jobs = sent.map(function(s, i) {
-    if (s.done) return Promise.resolve();
-    var body = new URLSearchParams();
-    body.append(FORM.who, s.who); body.append(FORM.page, PAGE); body.append(FORM.block, s.block);
-    body.append(FORM.question, s.q); body.append(FORM.reaction, s.reaction); body.append(FORM.answer, s.answer);
-    return fetch(FORM.action, { method: 'POST', mode: 'no-cors', body: body }).then(function(){ sent[i].done = true; }, function(){});
+    if (s.saved) return Promise.resolve();
+    if (!s.id) s.id = newId();
+    var body = JSON.stringify({ page: PAGE, block: s.block, who: s.who, question: s.q, reaction: s.reaction, answer: s.answer, clientId: s.id, clientTs: s.ts });
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: body })
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (j && j.success) sent[i].saved = true; }, function(){});
   });
   return Promise.all(jobs).then(function(){ store.set('kn-sent', sent); });
 }
@@ -430,7 +441,7 @@ document.querySelectorAll('#filters button').forEach(function(b) {
 // Личная ссылка: ?kto=nastya / milena / vasiliy — сразу без вопроса «кто вы»
 var KTO = { nastya: 'Настя', milena: 'Милена', vasiliy: 'Василий' }[new URLSearchParams(location.search).get('kto')];
 if (KTO) setWho(KTO); else if (who) setWho(who); else { filter = 'all'; render(); document.getElementById('gate').hidden = false; }
-flush();
+flush().then(function(){ if (who) render(); });
 </script>
 </body>
 </html>
