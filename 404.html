@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Неручной режим переехал</title>
+<link rel="canonical" href="https://neruchnoy.ru/">
+<meta name="robots" content="noindex">
+<script>
+  // Сайт переехал 05.11.2026: сохраняем путь, параметры и якорь; страница команды — в приложении DD.
+  (function () {
+    var p = location.pathname, q = location.search, h = location.hash;
+    var to = /^\/komanda(\/|$)/.test(p)
+      ? 'https://app.dreamdool.ru/komanda/index.html' + q + h
+      : 'https://neruchnoy.ru' + p + q + h;
+    location.replace(to);
+  })();
+</script>
+<meta http-equiv="refresh" content="0; url=https://neruchnoy.ru/">
+<style>
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #F6EFE4; color: #1C1714; font: 18px/1.5 system-ui, sans-serif; padding: 16px; text-align: center; }
+  a { color: #2E8C6E; }
+</style>
+</head>
+<body>
+<p>Сайт переехал на <a href="https://neruchnoy.ru/">neruchnoy.ru</a></p>
+</body>
+</html>
